@@ -1,7 +1,15 @@
+// Final Project - Computational Physics
+// Lambda0 Relative Resonance Decay
+// Authors: Dana Ali, Alec Ferensic,
+//          Jamar Philip, Akash Raj
+
+// C++ Libraries
 #include <iostream>
 #include <fstream>
 #include <random>
 #include <vector>
+
+// ROOT Libraries
 #include <TRandom.h>
 #include "TH1F.h"
 #include "TF1.h"
@@ -14,27 +22,22 @@
 #include "TVector3.h"
 
 
-// Define the resonance particle and its properties
-const double M_RES = 1.115683; // Resonance mass in GeV/c^2
-const double WIDTH_RES = 0.0249; // Resonance width in GeV/c^2
-const double LIFETIME_RES = 2.632e-10; // Resonance lifetime in seconds
-const int PDG_RES = 3122; // PDG code of the resonance (Lambda)
+// Particle IDs
+const int lamID = 3122;	// Particle ID for Lambda0
+const int piID = 211;	// Particle ID for pion
+const int proID = 2212;	// Particle ID for proton
 
-// Define the decay products and their properties
-const double M_PROTON = 0.938272; // Proton mass in GeV/c^2
-const double M_PION = 0.139570; // Pion mass in GeV/c^2
-const int PDG_PROTON = 2212; // PDG code of the proton
-const int PDG_PION = 211; // PDG code of the pion
+// Initialize equation constants
+const double sqrts = 200.0;		// CoM energy (GeV)
+const int nEvents = 1000;		// Number of events
+const int nBack = 10;			// Number of background particles per event
+const double eta_min = -0.5;	// Min for random eta
+const double eta_max = 0.5;		// Max for random eta
+const double rMass = 1.115683;	// Resonance mass (GeV)
 
-// Define the collision energy
-const double SQRT_SNN = 100.0; // Center-of-mass energy in GeV
 
 // Define the momentum resolution
 //const double MOM_RES = 0.0000001; // Momentum resolution (1%)
-
-// Define the number of events and background particles
-const int N_EVENTS = 10000; // Number of events
-const int N_BG = 10; // Number of background particles per event
 
 
 class FourMomentum {
