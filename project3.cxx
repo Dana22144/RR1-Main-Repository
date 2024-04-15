@@ -3,6 +3,15 @@
 // Authors: Dana Ali, Alec Ferensic,
 //          Jamar Philip, Akash Raj
 
+/*
+This program performs the following tasks:
+1. Randomize the mass and angles.
+2. Calculate the Lorentz transformation of the rest frame for each particle.
+3. Boost each particle using the TLorentz class.
+4. Find the Lorentz transformation of the resultant lab frame for each particle.
+5. Plot the final histogram of the particles centered about the rest mass.
+*/
+
 // C++ Libraries
 #include <iostream>
 #include <fstream>
@@ -166,7 +175,7 @@ std::vector<FourMomentum> ResonanceDecay(const FourMomentum& resonance) {
 
 
 
-
+/*Main project function*/
 int project3() {
     // Initialize histograms for the invariant mass and background
     TFile *f=new TFile("lorenz.root","RECREATE");
