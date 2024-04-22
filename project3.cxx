@@ -1,7 +1,14 @@
+// 6860 Final Project
+// Relative Resonance of Lambda-0
+// Dana Ali, Alec Ferensic, Jamar Philip, Akash Raj
+
+// C++ Headers
 #include <iostream>
 #include <fstream>
 #include <random>
 #include <vector>
+
+// ROOT Headers
 #include <TRandom.h>
 #include "TH1F.h"
 #include "TF1.h"
