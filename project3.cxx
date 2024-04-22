@@ -1,24 +1,7 @@
-// Final Project - Computational Physics
-// Lambda0 Relative Resonance Decay
-// Authors: Dana Ali, Alec Ferensic,
-//          Jamar Philip, Akash Raj
-
-/*
-This program performs the following tasks:
-1. Randomize the mass and angles.
-2. Calculate the Lorentz transformation of the rest frame for each particle.
-3. Boost each particle using the TLorentz class.
-4. Find the Lorentz transformation of the resultant lab frame for each particle.
-5. Plot the final histogram of the particles centered about the rest mass.
-*/
-
-// C++ Libraries
 #include <iostream>
 #include <fstream>
 #include <random>
 #include <vector>
-
-// ROOT Libraries
 #include <TRandom.h>
 #include "TH1F.h"
 #include "TF1.h"
@@ -30,33 +13,29 @@ This program performs the following tasks:
 #include "TLorentzVector.h"
 #include "TVector3.h"
 
+using namespace std;
 
-// Particle IDs
-const int lamID = 3122;	// Particle ID for Lambda0
-const int piID = 211;	// Particle ID for pion
-const int proID = 2212;	// Particle ID for proton
+//resonance properties
+const double M_RES = 1.115683; // Resonance mass in GeV/c^2
+const double WIDTH_RES = 0.0249; // Resonance width in GeV/c^2
+const double LIFETIME_RES = 2.632e-10; // Resonance lifetime in seconds
 
-// Initialize equation constants
-const double sqrts = 200.0;		// CoM energy (GeV)
-const int nEvents = 1000;		// Number of events
-const int nBack = 10;			// Number of background particles per event
-const double eta_min = -0.5;	// Min for random eta
-const double eta_max = 0.5;		// Max for random eta
-const double rMass = 1.115683;	// Resonance mass (GeV)
+//decay products and their properties
+const double M_PROTON = 0.938272; // Proton mass in GeV/c^2
+const double M_PION = 0.139570; // Pion mass in GeV/c^2
 
+const double SQRT_SNN = 200.0; // Center-of-mass energy in GeV
 
-// Define the momentum resolution
-//const double MOM_RES = 0.0000001; // Momentum resolution (1%)
-
+const int N_EVENTS = 10000; // Number of events
+const int N_BG = 10; // Number of background particles per event
 
 class FourMomentum {
    private:
       TLorentzVector vec;
-      int pdgCode;
-
+      
    public:
-      FourMomentum(double px, double py, double pz, double e, int pdgCode_) : vec(px, py, pz, e), pdgCode(pdgCode_) {}
-      FourMomentum(TLorentzVector v, int pdgCode_) : vec(v), pdgCode(pdgCode_) {}
+      FourMomentum(double px, double py, double pz, double e) : vec(px, py, pz, e) {}
+      FourMomentum(TLorentzVector v) : vec(v) {}
 
       double Px() const { return vec.Px(); }
       double Py() const { return vec.Py(); }
@@ -66,43 +45,23 @@ class FourMomentum {
       FourMomentum Boost(const FourMomentum& resonance) {
          TLorentzVector v1 (resonance.Px(), resonance.Py(), resonance.Pz(), resonance.E());
          TVector3 v2 = v1.BoostVector();
-         //TVector3 MyParticleCombi_BoostVector = vec1.BoostVector();
          TLorentzVector myparticle_newsys=vec;
-	 myparticle_newsys.Boost(v2);
-	 //cout << vec.M() << endl;
-         return FourMomentum(myparticle_newsys, pdgCode);
+	     myparticle_newsys.Boost(v2);
+	    //cout << vec.M() << endl;
+         return FourMomentum(myparticle_newsys);
       }
-      
-      /*FourMomentum Boost(FourMomentum resonance) {
-         TVector3 MyParticle_BoostVector = (resonance.vec).BoostVector();
-	 TLorentzVector MyParticle1_newSys = resonance.vec;
-	 .Boost(MyParticle_BoostVector);
-         return FourMomentum(MyParticle1_newSys, pdgCode);
-      }*/
-      /*void Boost(TLorentzVector& vec, const TVector3& boostvec) {
-    	double beta = boostvec.Mag() / boostvec.Mag2();
-    vec.Boost(beta, boostvec);*/
-
-
-      /*FourMomentum Boost(cons TLorentzVector& p_boost) {
-         double bx = p_boost.Px() / p_boost.E();
-         double by = p_boost.Py() / p_boost.E();
-         double bz = p_boost.Pz() / p_boost.E();
-         return Boost(bx, by, bz);
-      }*/
+     
       
       // Setters
     void SetPx(double px) { vec.SetPx(px); }
     void SetPy(double py) { vec.SetPy(py); }
     void SetPz(double pz) { vec.SetPz(pz); }
     void SetE(double e) { vec.SetE(e); }
-    void SetPdgCode(int pdgCode_) { pdgCode = pdgCode_; }
-
-    // Other functions
-    double Pt() const { return sqrt(vec.Px()*(vec.Px()) + vec.Py()*(vec.Py())); }
+    
+    //functions
+    double Pt() const {return sqrt(vec.Px()*(vec.Px()) + vec.Py()*(vec.Py())); }
     double P() const { return sqrt(vec.Px()*(vec.Px()) + vec.Py()*(vec.Py()) + vec.Pz()*(vec.Pz())); }
     double M() const { return sqrt(vec.E()*(vec.E()) - vec.P()*(vec.P())); }
-	//FourMomentum Boost(double beta_res, double gamma_res);
 	
 	//operators
 	FourMomentum operator + (FourMomentum &);
@@ -114,7 +73,7 @@ class FourMomentum {
 
 FourMomentum FourMomentum::operator+(FourMomentum &m)
 {
-	return FourMomentum(vec.Px()+m.Px(),vec.Py()+m.Py(),vec.Pz()+m.Pz(),vec.E()+m.E(), pdgCode);
+	return FourMomentum(vec.Px()+m.Px(),vec.Py()+m.Py(),vec.Pz()+m.Pz(),vec.E()+m.E());
 }
 
 
@@ -127,8 +86,8 @@ double breit_wigner(double mean, double gamma) {
 }
 
 // Function to perform the resonance decay
-std::vector<FourMomentum> ResonanceDecay(const FourMomentum& resonance) {
-    std::vector<FourMomentum> products;
+    vector<FourMomentum> ResonanceDecay(const FourMomentum& resonance) {
+    vector<FourMomentum> products;
 
     // Get the momentum of the resonance in its rest frame
     
@@ -155,8 +114,8 @@ std::vector<FourMomentum> ResonanceDecay(const FourMomentum& resonance) {
 
     //cout<<P_d<<" "<<E_d_PROTON<<endl;
     // Calculate the 4-momenta of the daughter particles in the rest frame
-    FourMomentum proton(P_d*sin(theta)*cos(phi), P_d*sin(theta)*sin(phi), P_d*cos(theta), E_d_PROTON, PDG_PROTON);
-    FourMomentum pion(-P_d*sin(theta)*cos(phi), -P_d*sin(theta)*sin(phi), -P_d*cos(theta), E_d_PION, PDG_PION);
+    FourMomentum proton(P_d*sin(theta)*cos(phi), P_d*sin(theta)*sin(phi), P_d*cos(theta), E_d_PROTON);
+    FourMomentum pion(-P_d*sin(theta)*cos(phi), -P_d*sin(theta)*sin(phi), -P_d*cos(theta), E_d_PION);
 
     //cout<< pion.Pz()<<" " <<endl;
     // Boost the daughter particles to the lab frame
@@ -170,13 +129,7 @@ std::vector<FourMomentum> ResonanceDecay(const FourMomentum& resonance) {
     return products;
 }
 
-
-
-
-
-
-/*Main project function*/
-int project3() {
+int project() {
     // Initialize histograms for the invariant mass and background
     TFile *f=new TFile("lorenz.root","RECREATE");
     TH1F* h_mass = new TH1F("h_mass", "Invariant Mass", 100, 1.08, 1.15);
@@ -189,12 +142,12 @@ int project3() {
     for (int i_event = 0; i_event < N_EVENTS; i_event++) {
         // Generate a resonance particle
         double m_res = breit_wigner(M_RES, WIDTH_RES);
-        FourMomentum resonance(0,0, SQRT_SNN/(2),sqrt((SQRT_SNN*SQRT_SNN/4)+m_res*m_res), PDG_RES);
+        FourMomentum resonance(0,0, SQRT_SNN/(2),sqrt((SQRT_SNN*SQRT_SNN/4)+m_res*m_res));
 
         // Decay the resonance particle
        // std::vector
     FourMomentum parent = resonance;
-    std::vector<FourMomentum> daughters = ResonanceDecay(parent);
+    vector<FourMomentum> daughters = ResonanceDecay(parent);
 
 	
 	
@@ -206,14 +159,11 @@ int project3() {
         //daughter.SetE(abs(rng.Gaus(daughter.E(), daughter.E()*0.00005)));
     }
    
-   
-    
-    
-    
+  
 
     // Calculate the invariant mass of the daughter particles
     double inv_mass = (daughters[0] + daughters[1]).M();
-	//cout<<"SYED "<<inv_mass<<endl;
+	//cout<<"result "<<inv_mass<<endl;
     // Fill the invariant mass histogram
     //h_mass->Fill(inv_mass);
     h_mass->Fill(rng.Gaus(inv_mass, inv_mass*0.005));
@@ -227,7 +177,7 @@ int project3() {
     //h_mass->Fill(bg_inv_mass);
 	}
 	}
-	// Draw the histograms
+	// histograms
 
 	//TCanvas* c1 = new TCanvas("c1", "c1", 800, 600);
 	h_mass->SetLineColor(kRed);
@@ -243,8 +193,8 @@ int project3() {
 	// Print the number of signal and background events in the signal region
 	double signal = h_mass->Integral(h_mass->FindBin(M_RES - 3.0*WIDTH_RES), h_mass->FindBin(M_RES + 3.0*WIDTH_RES));
 	double bg = h_bg->Integral(h_bg->FindBin(M_RES - 3.0*WIDTH_RES), h_bg->FindBin(M_RES + 3.0*WIDTH_RES));
-	std::cout << "Number of signal events: " << signal << std::endl;
-	std::cout << "Number of background events: " << bg << std::endl;
+	cout << "Number of signal events: " << signal << endl;
+	cout << "Number of background events: " << bg << endl;
 	
 	return 0;
 }
@@ -252,3 +202,4 @@ int project3() {
 /*
 This code should generate events for the decay of a Lambda particle resonance, apply Gaussian smearing to the daughter particle momenta, and calculate the invariant mass of the daughter particles. It also includes a Breit-Wigner distribution for generating the resonance mass, uncorrelated background events, and histograms for the invariant mass and background. Finally, it calculates the number of signal and background events in the signal region and prints them to the console.
 */
+
